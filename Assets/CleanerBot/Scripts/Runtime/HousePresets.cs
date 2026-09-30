@@ -59,7 +59,7 @@ namespace CleanerBot
             OuterWalls(L);
             // Interior walls with door openings (1.0 m)
             L.walls.Add(new WallSpec(6, 0, 6, 8, Door(1.6f, 2.6f), Door(6.2f, 7.2f))); // living|kitchen, study|bedroom
-            L.walls.Add(new WallSpec(0, 5, 6, 5, Door(2.0f, 3.0f)));                    // living|study
+            L.walls.Add(new WallSpec(0, 5, 6, 5, Door(0.6f, 1.6f)));                    // living|study (left of the TV stand, x1.7-3.3)
             L.walls.Add(new WallSpec(6, 4, 10, 4, Door(7.6f, 8.6f)));                   // kitchen|bedroom
 
             var F = L.furniture;
@@ -89,7 +89,7 @@ namespace CleanerBot
             F.Add(new FurnitureSpec("chair", 1.2f, 6.95f, 0f));
             F.Add(new FurnitureSpec("bookshelf", 4.0f, 7.8f, 180f));
             F.Add(new FurnitureSpec("armchair", 5.47f, 5.8f, -90f));   // pushed 12 cm toward the wall (user edit)
-            F.Add(new FurnitureSpec("plant", 0.4f, 5.45f));
+            F.Add(new FurnitureSpec("plant", 0.4f, 6.4f));    // moved off the living|study door
             return L;
         }
 
