@@ -92,6 +92,7 @@ namespace CleanerBot.EditorTools
             // Robot
             var robot = RobotFactory.Create(house.robotSpawn, mats);
             EnsureCoverage(house, robot);
+            SimulationCommands.EnsureRunner();
 
             AssetMaterialProvider.EnsureFolder(Path.GetDirectoryName(scenePath).Replace('\\', '/'));
             EditorSceneManager.SaveScene(scene, scenePath);

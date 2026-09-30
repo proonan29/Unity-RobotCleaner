@@ -18,6 +18,9 @@ namespace CleanerBot
         [Tooltip("Cell size in metres")] public float cellSize = 0.05f;
         [Tooltip("Cleaning (brush) radius in metres; must be <= NavMesh agent radius")] public float brushRadius = 0.16f;
 
+        [Tooltip("Sweep from the robot transform every frame. SimulationRunner turns this off and sweeps inside the simulation.")]
+        public bool autoSweepFromTransform = true;
+
         [Header("Display")]
         public bool showRemaining = true;
         public float overlayHeight = 0.004f;
@@ -80,7 +83,7 @@ namespace CleanerBot
 
             var p = robot.transform.position;
             float dx = p.x - _lastStamp.x, dz = p.z - _lastStamp.z;
-            if (dx * dx + dz * dz >= (cellSize * 0.5f) * (cellSize * 0.5f))
+            if (autoSweepFromTransform && dx * dx + dz * dz >= (cellSize * 0.5f) * (cellSize * 0.5f))
             {
                 Grid.Sweep(_lastStamp, p, brushRadius);
                 _lastStamp = p;
@@ -92,6 +95,14 @@ namespace CleanerBot
                 Grid.Dirty = false;
                 _nextRefresh = Time.unscaledTime + refreshInterval;
             }
+        }
+
+        /// <summary>Repaint the overlay immediately.</summary>
+        public void RefreshNow()
+        {
+            if (!Ready) return;
+            Painter.Refresh(Grid, showRemaining);
+            Grid.Dirty = false;
         }
 
         public void SetShowRemaining(bool show)

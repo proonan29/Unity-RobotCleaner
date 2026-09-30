@@ -24,11 +24,16 @@ namespace CleanerBot
         readonly int[] _lastStep;
         int _step = 1;
 
+        /// <summary>Cells where the robot CENTRE can be (on NavMesh, connected to the start).</summary>
+        public bool[] Reachable { get; private set; }
+        public int ReachableCount { get; private set; }
         public int CleanableCount { get; private set; }
         public int CoveredCount { get; private set; }
         public int OverlapCount { get; private set; }    // cells with >= 2 passes
         public long TotalPasses { get; private set; }
         public bool Dirty { get; set; } = true;
+
+        const float OnMeshTolerance = 0.005f;   // m
 
         public int CellCount => Width * Height;
         public float CellArea => CellSize * CellSize;
@@ -71,13 +76,16 @@ namespace CleanerBot
                     if (NavMesh.SamplePosition(c, out var hit, 0.12f, NavMesh.AllAreas))
                     {
                         float dx = hit.position.x - c.x, dz = hit.position.z - c.z;
-                        if (dx * dx + dz * dz <= half * half && Mathf.Abs(hit.position.y) < 0.1f)
+                        // centre must be ON the mesh (not just near it), otherwise the robot can never
+                        // actually reach it and the dilated edge cells would be uncleanable in practice
+                        if (dx * dx + dz * dz <= OnMeshTolerance * OnMeshTolerance && Mathf.Abs(hit.position.y) < 0.1f)
                             onMesh[Index(x, y)] = true;
                     }
                 }
 
             // 2) Flood fill from the robot's start (drops islands the robot can't reach, e.g. under a bed)
             var reach = new bool[n];
+            Reachable = reach;
             if (FindSeed(seedWorld, onMesh, out int seed))
             {
                 var q = new Queue<int>();
@@ -122,7 +130,12 @@ namespace CleanerBot
             }
 
             CleanableCount = 0;
-            for (int i = 0; i < n; i++) if (Cleanable[i]) CleanableCount++;
+            ReachableCount = 0;
+            for (int i = 0; i < n; i++)
+            {
+                if (Cleanable[i]) CleanableCount++;
+                if (reach[i]) ReachableCount++;
+            }
             Clear();
         }
 
@@ -190,6 +203,50 @@ namespace CleanerBot
                     }
                     _lastStep[i] = _step;
                 }
+        }
+
+        /// <summary>Cell offsets whose centres lie within radius of a cell centre (the brush footprint).</summary>
+        public List<Vector2Int> BrushOffsets(float radius)
+        {
+            var list = new List<Vector2Int>();
+            int r = Mathf.CeilToInt(radius / CellSize);
+            float r2 = (radius / CellSize) * (radius / CellSize);
+            for (int dy = -r; dy <= r; dy++)
+                for (int dx = -r; dx <= r; dx++)
+                    if (dx * dx + dy * dy <= r2) list.Add(new Vector2Int(dx, dy));
+            return list;
+        }
+
+        /// <summary>Number of still-dirty cleanable cells the brush would cover with the robot centred on (x, y).</summary>
+        public int Gain(int x, int y, List<Vector2Int> brush)
+        {
+            int g = 0;
+            foreach (var o in brush)
+            {
+                int xx = x + o.x, yy = y + o.y;
+                if (xx < 0 || yy < 0 || xx >= Width || yy >= Height) continue;
+                int i = yy * Width + xx;
+                if (Cleanable[i] && Passes[i] == 0) g++;
+            }
+            return g;
+        }
+
+        /// <summary>Nearest reachable cell to a world position (spiral search), or -1.</summary>
+        public int NearestReachable(Vector3 p, int maxRadius = 20)
+        {
+            if (Reachable == null) return -1;
+            WorldToCell(p, out int cx, out int cy);
+            for (int rad = 0; rad <= maxRadius; rad++)
+                for (int dy = -rad; dy <= rad; dy++)
+                    for (int dx = -rad; dx <= rad; dx++)
+                    {
+                        if (Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dy)) != rad) continue;
+                        int x = cx + dx, y = cy + dy;
+                        if (x < 0 || y < 0 || x >= Width || y >= Height) continue;
+                        int i = Index(x, y);
+                        if (Reachable[i]) return i;
+                    }
+            return -1;
         }
 
         public CoverageStats GetStats()
