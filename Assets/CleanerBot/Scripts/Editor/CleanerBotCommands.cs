@@ -91,6 +91,7 @@ namespace CleanerBot.EditorTools
 
             // Robot
             var robot = RobotFactory.Create(house.robotSpawn, mats);
+            EnsureCoverage(house, robot);
 
             AssetMaterialProvider.EnsureFolder(Path.GetDirectoryName(scenePath).Replace('\\', '/'));
             EditorSceneManager.SaveScene(scene, scenePath);
@@ -161,6 +162,68 @@ namespace CleanerBot.EditorTools
             AssetDatabase.SaveAssets();
             var s = NavMesh.GetSettingsByID(0);
             return $"agent0 name={NavMesh.GetSettingsNameFromID(0)} radius={F(s.agentRadius)} height={F(s.agentHeight)} climb={F(s.agentClimb)} slope={F(s.agentSlope)}";
+        }
+
+        // ---- Coverage (phase 2) ----
+
+        const string CoverageShaderPath = "Assets/CleanerBot/Shaders/CoverageOverlay.shader";
+
+        static CoverageManager EnsureCoverage(HouseInstance house, RobotController robot)
+        {
+            var cm = UnityEngine.Object.FindAnyObjectByType<CoverageManager>();
+            if (cm == null) cm = new GameObject("Coverage").AddComponent<CoverageManager>();
+            cm.house = house;
+            cm.robot = robot;
+            cm.overlayShader = AssetDatabase.LoadAssetAtPath<Shader>(CoverageShaderPath);
+            EditorUtility.SetDirty(cm);
+            return cm;
+        }
+
+        [CliCommand("cb_add_coverage", "Add/refresh the CoverageManager in the active scene (edit mode) and save the scene.")]
+        public static string AddCoverage()
+        {
+            if (Application.isPlaying) return "error: exit play mode first";
+            var house = UnityEngine.Object.FindAnyObjectByType<HouseInstance>();
+            var robot = UnityEngine.Object.FindAnyObjectByType<RobotController>();
+            if (house == null || robot == null) return "error: need HouseInstance and RobotController in the scene";
+            var cm = EnsureCoverage(house, robot);
+            EditorSceneManager.MarkSceneDirty(cm.gameObject.scene);
+            EditorSceneManager.SaveScene(cm.gameObject.scene);
+            return $"coverage={cm.name} shader={(cm.overlayShader != null ? cm.overlayShader.name : "MISSING")} cell={F(cm.cellSize)} brush={F(cm.brushRadius)}";
+        }
+
+        [CliCommand("cb_coverage", "Play mode: coverage statistics (cleanable area, covered area, %, passes).")]
+        public static string Coverage()
+        {
+            var cm = UnityEngine.Object.FindAnyObjectByType<CoverageManager>();
+            if (cm == null) return "error: no CoverageManager";
+            if (!cm.Ready) return "error: coverage not initialised (enter play mode)";
+            var s = cm.GetStats();
+            var g = cm.Grid;
+            var r = UnityEngine.Object.FindAnyObjectByType<RobotController>();
+            return $"coverage={F(s.coveragePercent)}% covered_m2={F(s.coveredM2)} cleanable_m2={F(s.cleanableM2)} " +
+                   $"avg_passes={F(s.averagePasses)} overlap={F(s.overlapPercent)}% grid={g.Width}x{g.Height}@{F(g.CellSize)}m " +
+                   $"init_ms={F(cm.InitMs)} distance={(r != null ? F(r.DistanceTraveled) : "-")} sim_time={F(Time.time)}";
+        }
+
+        [CliCommand("cb_coverage_reset", "Play mode: clear cleaning progress (keeps the cleanable mask).")]
+        public static string CoverageReset()
+        {
+            var cm = UnityEngine.Object.FindAnyObjectByType<CoverageManager>();
+            if (cm == null || !cm.Ready) return "error: coverage not ready";
+            cm.ResetCoverage();
+            return "coverage reset";
+        }
+
+        [CliCommand("cb_coverage_export", "Play mode: save the coverage map texture as PNG (path relative to project root).")]
+        public static string CoverageExport([CliArg("path", "Output PNG path")] string path = "Screenshots/coverage_map.png")
+        {
+            var cm = UnityEngine.Object.FindAnyObjectByType<CoverageManager>();
+            if (cm == null || !cm.Ready) return "error: coverage not ready";
+            string full = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Application.dataPath), path));
+            Directory.CreateDirectory(Path.GetDirectoryName(full));
+            File.WriteAllBytes(full, cm.Painter.Texture.EncodeToPNG());
+            return $"saved {full} ({cm.Grid.Width}x{cm.Grid.Height})";
         }
 
         // ---- Play-mode helpers (drive / inspect the robot) ----
