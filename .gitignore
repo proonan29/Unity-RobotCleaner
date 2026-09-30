@@ -31,3 +31,6 @@ Thumbs.db
 *.aab
 *.unitypackage
 crashlytics-build.properties
+
+# Agent scratch
+/AgentTools/_combined.cs
