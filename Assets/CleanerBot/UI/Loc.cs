@@ -125,6 +125,10 @@ namespace CleanerBot.UI
             ["Charging time"] = "충전 시간",
             ["Lowest battery"] = "최저 배터리",
             ["CHARGES"] = "충전",
+            // furniture models
+            ["FURNITURE"] = "가구",
+            ["Use 3D furniture models"] = "3D 가구 모델 사용",
+            ["Reloads the current house."] = "현재 집을 다시 불러옵니다.",
             // planners
             ["Frontier"] = "프론티어",
             ["Random"] = "랜덤",

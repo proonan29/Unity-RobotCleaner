@@ -46,6 +46,7 @@ namespace CleanerBot.EditorTools
             app.coverage = UnityEngine.Object.FindAnyObjectByType<CoverageManager>();
             app.runner = runner;
             app.cam = Camera.main;
+            app.catalog = CatalogCommands.LoadCatalog();
             EditorUtility.SetDirty(app);
 
             var ui = UnityEngine.Object.FindAnyObjectByType<CleanerBotUI>();

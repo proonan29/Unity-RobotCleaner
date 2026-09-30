@@ -80,6 +80,15 @@ namespace CleanerBot.UI
             _chargeValue = root.Q<Label>("chargeValue");
             _batteryValue = root.Q<Label>("batteryValue");
             _batteryBar = root.Q<ProgressBar>("batteryBar");
+            var models = root.Q<Toggle>("modelsToggle");
+            models.SetValueWithoutNotify(app.useModels);
+            models.SetEnabled(app.catalog != null);
+            models.RegisterValueChangedCallback(e =>
+            {
+                app.useModels = e.newValue;
+                app.LoadHouse(app.CurrentHouse);
+                HideSummary();
+            });
 
             _chart = new TimelineChart { timeLabel = t => Loc.F("{0}m", (t / 60f).ToString("0", CultureInfo.InvariantCulture)) };
             root.Q("chartContainer").Add(_chart);

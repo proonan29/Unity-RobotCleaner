@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <ui:Style src="CleanerBotUI.uss" />
     <ui:VisualElement name="root" class="root" picking-mode="Ignore">
-        <ui:VisualElement name="sidePanel" class="side-panel">
+        <ui:ScrollView name="sidePanel" class="side-panel" mode="Vertical" horizontal-scroller-visibility="Hidden">
             <ui:VisualElement class="row-between">
                 <ui:Label text="CleanerBot" class="title" />
                 <ui:Button name="settingsButton" text="Settings" class="btn btn-icon l10n" />
@@ -27,6 +27,9 @@
                 </ui:VisualElement>
                 <ui:SliderInt name="chargeSlider" low-value="5" high-value="240" value="30" class="field" />
                 <ui:Label text="Applies from the next Start." class="hint l10n" />
+                <ui:Label text="FURNITURE" class="section-title settings-subtitle l10n" />
+                <ui:Toggle name="modelsToggle" label="Use 3D furniture models" value="true" class="toggle l10n" />
+                <ui:Label text="Reloads the current house." class="hint l10n" />
             </ui:VisualElement>
 
             <ui:VisualElement class="section">
@@ -88,7 +91,7 @@
                 <ui:Button name="summaryButton" text="Summary" class="btn l10n" />
                 <ui:Button name="compareButton" text="Compare planners" class="btn btn-last l10n" />
             </ui:VisualElement>
-        </ui:VisualElement>
+        </ui:ScrollView>
 
         <ui:VisualElement name="summaryPanel" class="summary-panel hidden">
             <ui:VisualElement class="row-between">

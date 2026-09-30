@@ -78,7 +78,7 @@ namespace CleanerBot
         static readonly Color FloorColor = new Color(0.80f, 0.70f, 0.55f);
         static readonly Color WallColor = new Color(0.93f, 0.92f, 0.89f);
 
-        public static HouseInstance Build(HouseLayout L, IMaterialProvider mats)
+        public static HouseInstance Build(HouseLayout L, IMaterialProvider mats, FurnitureCatalog catalog = null)
         {
             var root = new GameObject("House_" + L.name);
             var house = root.AddComponent<HouseInstance>();
@@ -107,7 +107,7 @@ namespace CleanerBot
             {
                 counts.TryGetValue(f.kind, out var n);
                 counts[f.kind] = n + 1;
-                var go = FurnitureFactory.Create(f, mats);
+                var go = FurnitureFactory.Create(f, mats, catalog);
                 go.name = $"{f.kind}_{n + 1}";
                 go.transform.SetParent(furn, false);
             }

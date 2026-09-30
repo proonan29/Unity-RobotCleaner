@@ -18,6 +18,10 @@ namespace CleanerBot
         public SimulationRunner runner;
         public Camera cam;
         public float cameraPitch = 60f;
+        [Tooltip("Kind -> 3D model mapping (Asset Store furniture). Null = procedural furniture only.")]
+        public FurnitureCatalog catalog;
+        [Tooltip("Use the catalog's 3D models when (re)loading a house")]
+        public bool useModels = true;
 
         public event Action HouseChanged;
         public event Action<SimulationCore> Finished;
@@ -57,7 +61,7 @@ namespace CleanerBot
                 Destroy(house.gameObject);
             }
 
-            house = HouseGenerator.Build(layout, _mats);
+            house = HouseGenerator.Build(layout, _mats, useModels ? catalog : null);
             house.RebuildNavMesh();
 
             var spawn = NavMesh.SamplePosition(house.robotSpawn, out var hit, 1f, NavMesh.AllAreas) ? hit.position : house.robotSpawn;

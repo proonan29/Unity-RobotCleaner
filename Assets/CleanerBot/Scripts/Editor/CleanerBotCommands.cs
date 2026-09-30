@@ -74,7 +74,8 @@ namespace CleanerBot.EditorTools
 
             // House + NavMesh (robot-sized agent first)
             ConfigureAgent();
-            var house = HouseGenerator.Build(layout, mats);
+            var catalog = CatalogCommands.LoadCatalog();
+            var house = HouseGenerator.Build(layout, mats, catalog);
             var bake = BakeAndSave(house);
 
             // Camera framing the whole house

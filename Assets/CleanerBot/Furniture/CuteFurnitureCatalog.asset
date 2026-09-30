@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40f807ac2a618424ba36f6cb211acdb9, type: 3}
+  m_Name: CuteFurnitureCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::CleanerBot.FurnitureCatalog
+  entries:
+  - kind: sofa
+    prefab: {fileID: 6738996137917839785, guid: aea230b5d7767ec4585e27e4158d5d34, type: 3}
+    yawOffset: 180
+    align: 1
+    tileAlongX: 0
+  - kind: armchair
+    prefab: {fileID: 6253955288435565766, guid: 8878c202feaa3d549a699e287f054431, type: 3}
+    yawOffset: 180
+    align: 1
+    tileAlongX: 0
+  - kind: coffee_table
+    prefab: {fileID: 6988426106075308570, guid: b22049dea4e6c0940a9329bac4f37af7, type: 3}
+    yawOffset: 180
+    align: 0
+    tileAlongX: 0
+  - kind: dining_table
+    prefab: {fileID: 6991615325031932100, guid: 8ab5b3c4d652c644bb5aa3206796eb38, type: 3}
+    yawOffset: 180
+    align: 0
+    tileAlongX: 0
+  - kind: desk
+    prefab: {fileID: 6170273324507501305, guid: 88f87e731e0a02345a14f5adc02732ce, type: 3}
+    yawOffset: 180
+    align: 1
+    tileAlongX: 0
+  - kind: chair
+    prefab: {fileID: 5166716410169907534, guid: 83b854de2af80bd4995e0a8955880207, type: 3}
+    yawOffset: 180
+    align: 0
+    tileAlongX: 0
+  - kind: bookshelf
+    prefab: {fileID: 8325204157807476188, guid: bfa9f3c1fd740f5499cc7669471699d3, type: 3}
+    yawOffset: 180
+    align: 1
+    tileAlongX: 0
+  - kind: kitchen_counter
+    prefab: {fileID: 5482446738185141061, guid: 4373ebc88579312458126170bd6a8920, type: 3}
+    yawOffset: 180
+    align: 1
+    tileAlongX: 1
+  - kind: fridge
+    prefab: {fileID: 1399740318589316339, guid: 04ae2104958db354a97c66fc42049de6, type: 3}
+    yawOffset: 180
+    align: 1
+    tileAlongX: 0
+  - kind: bed
+    prefab: {fileID: 3008206344697069299, guid: c85b34420ea19da4d8c5e1750ecb021d, type: 3}
+    yawOffset: 180
+    align: 2
+    tileAlongX: 0
+  - kind: nightstand
+    prefab: {fileID: 2932639709048915655, guid: 413b689723d91cd4f96748b6b6a096ff, type: 3}
+    yawOffset: 180
+    align: 1
+    tileAlongX: 0
+  - kind: wardrobe
+    prefab: {fileID: 8325204157807476188, guid: bfa9f3c1fd740f5499cc7669471699d3, type: 3}
+    yawOffset: 180
+    align: 1
+    tileAlongX: 0
+  - kind: plant
+    prefab: {fileID: 2403496373118178391, guid: 968a55c757fae9e488517a19bbb9dda6, type: 3}
+    yawOffset: 180
+    align: 0
+    tileAlongX: 0

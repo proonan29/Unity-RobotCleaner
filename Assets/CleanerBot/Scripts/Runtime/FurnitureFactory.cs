@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace CleanerBot
 {
@@ -20,12 +21,17 @@ namespace CleanerBot
         static readonly Color Leaf = new Color(0.25f, 0.55f, 0.28f);
         static readonly Color Pot = new Color(0.70f, 0.42f, 0.30f);
 
-        public static GameObject Create(FurnitureSpec f, IMaterialProvider mats)
+        public static GameObject Create(FurnitureSpec f, IMaterialProvider mats, FurnitureCatalog catalog = null)
         {
-            var root = new GameObject(f.kind);
-            root.transform.localPosition = new Vector3(f.pos.x, 0f, f.pos.y);
-            root.transform.localRotation = Quaternion.Euler(0f, f.rotY, 0f);
+            var root = new GameObject(f.kind);      // built at the origin, posed at the end
             var p = root.transform;
+
+            if (TryModel(p, f, catalog))
+            {
+                root.transform.localPosition = new Vector3(f.pos.x, 0f, f.pos.y);
+                root.transform.localRotation = Quaternion.Euler(0f, f.rotY, 0f);
+                return root;
+            }
 
             switch (f.kind)
             {
@@ -54,8 +60,91 @@ namespace CleanerBot
                     Solid(p, mats, 0.5f, 0.5f, 0.5f, Color.magenta, "Unknown");
                     break;
             }
+            root.transform.localPosition = new Vector3(f.pos.x, 0f, f.pos.y);
+            root.transform.localRotation = Quaternion.Euler(0f, f.rotY, 0f);
             return root;
         }
+
+        /// <summary>Footprint (x = width, y = depth) of the procedural version of each kind; models are aligned to it.</summary>
+        public static Vector2 Footprint(FurnitureSpec f)
+        {
+            switch (f.kind)
+            {
+                case "sofa": return new Vector2(2.0f, 0.9f);
+                case "armchair": return new Vector2(0.9f, 0.9f);
+                case "coffee_table": return new Vector2(1.1f, 0.6f);
+                case "dining_table": return new Vector2(1.4f, 0.8f);
+                case "desk": return new Vector2(1.2f, 0.6f);
+                case "chair": return new Vector2(0.45f, 0.45f);
+                case "tv_stand": return new Vector2(1.6f, 0.4f);
+                case "bookshelf": return new Vector2(0.9f, 0.3f);
+                case "kitchen_counter": return new Vector2(f.size.x > 0 ? f.size.x : 2.0f, f.size.y > 0 ? f.size.y : 0.6f);
+                case "fridge": return new Vector2(0.7f, 0.7f);
+                case "bed": return new Vector2(1.6f, 2.0f);
+                case "nightstand": return new Vector2(0.45f, 0.4f);
+                case "wardrobe": return new Vector2(1.2f, 0.6f);
+                case "plant": return new Vector2(0.34f, 0.34f);
+                default: return new Vector2(0.5f, 0.5f);
+            }
+        }
+
+        /// <summary>
+        /// Place catalog model(s) under `root` (which must be at the origin with identity rotation):
+        /// yaw-corrected, sitting on the floor, aligned to the kind's footprint, with mesh colliders for the NavMesh.
+        /// </summary>
+        static bool TryModel(Transform root, FurnitureSpec f, FurnitureCatalog catalog)
+        {
+            var e = catalog != null ? catalog.Find(f.kind) : null;
+            if (e == null) return false;
+            var fp = Footprint(f);
+
+            var first = UnityEngine.Object.Instantiate(e.prefab, root);
+            first.name = e.prefab.name;
+            first.transform.localPosition = Vector3.zero;
+            first.transform.localRotation = Quaternion.Euler(0f, e.yawOffset, 0f);
+            var parts = new List<GameObject> { first };
+
+            if (e.tileAlongX)
+            {
+                float w = RendererBounds(first).size.x;
+                int n = Mathf.Max(1, Mathf.FloorToInt((fp.x + 0.05f) / Mathf.Max(0.05f, w)));
+                for (int i = 1; i < n; i++)
+                {
+                    var c = UnityEngine.Object.Instantiate(e.prefab, root);
+                    c.name = e.prefab.name + "_" + i;
+                    c.transform.localRotation = first.transform.localRotation;
+                    parts.Add(c);
+                }
+                for (int i = 0; i < parts.Count; i++)
+                    parts[i].transform.localPosition = new Vector3((i - (parts.Count - 1) * 0.5f) * w, 0f, 0f);
+            }
+
+            // align combined bounds to the footprint (root is at the origin, so world == local here)
+            var b = RendererBounds(root.gameObject);
+            float dz = e.align == FurnitureCatalog.Align.Back ? (-fp.y * 0.5f) - b.min.z
+                     : e.align == FurnitureCatalog.Align.Front ? (fp.y * 0.5f) - b.max.z
+                     : -b.center.z;
+            var delta = new Vector3(-b.center.x, -b.min.y, dz);
+            foreach (var p in parts) p.transform.localPosition += delta;
+
+            // colliders for the NavMesh (PhysicsColliders) and click raycasts
+            foreach (var mf in root.GetComponentsInChildren<MeshFilter>())
+            {
+                if (mf.sharedMesh == null || mf.GetComponent<Collider>() != null) continue;
+                mf.gameObject.AddComponent<MeshCollider>().sharedMesh = mf.sharedMesh;
+            }
+            return true;
+        }
+
+        static Bounds RendererBounds(GameObject go)
+        {
+            var rs = go.GetComponentsInChildren<Renderer>();
+            if (rs.Length == 0) return new Bounds(go.transform.position, Vector3.zero);
+            var b = rs[0].bounds;
+            foreach (var r in rs) b.Encapsulate(r.bounds);
+            return b;
+        }
+
 
         /// <summary>Box that sits on the floor (robot cannot go under).</summary>
         static void Solid(Transform p, IMaterialProvider mats, float sx, float sz, float h, Color c, string key)

@@ -8,6 +8,7 @@
 
 .side-panel {
     width: 340px;
+    max-height: 100%;
     padding: 18px;
     background-color: rgba(20, 22, 28, 0.9);
     border-radius: 12px;
@@ -362,4 +363,21 @@
 
 .legend-battery {
     background-color: rgb(240, 200, 80);
+}
+
+.side-panel .unity-scroll-view__vertical-scroller {
+    width: 6px;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.side-panel .unity-scroller__low-button,
+.side-panel .unity-scroller__high-button {
+    display: none;
+}
+
+.side-panel .unity-scroll-view__vertical-scroller .unity-base-slider__dragger {
+    background-color: rgb(80, 86, 100);
+    border-width: 0;
+    border-radius: 3px;
 }
