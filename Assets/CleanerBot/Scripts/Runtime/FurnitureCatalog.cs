@@ -24,6 +24,7 @@ namespace CleanerBot
             public GameObject prefab;
             [Tooltip("Extra yaw so the model's front faces local +Z (the layout convention)")] public float yawOffset = 180f;
             public Align align = Align.Center;
+            [Tooltip("Extra shift along local +Z (toward the front / away from the wall) after alignment, in metres")] public float depthOffset;
             [Tooltip("Repeat the model along local X to fill the footprint width (kitchen counters)")] public bool tileAlongX;
         }
 

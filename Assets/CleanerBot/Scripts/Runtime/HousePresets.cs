@@ -88,7 +88,7 @@ namespace CleanerBot
             F.Add(new FurnitureSpec("desk", 1.2f, 7.6f));
             F.Add(new FurnitureSpec("chair", 1.2f, 6.95f, 0f));
             F.Add(new FurnitureSpec("bookshelf", 4.0f, 7.8f, 180f));
-            F.Add(new FurnitureSpec("armchair", 5.35f, 5.8f, -90f));
+            F.Add(new FurnitureSpec("armchair", 5.47f, 5.8f, -90f));   // pushed 12 cm toward the wall (user edit)
             F.Add(new FurnitureSpec("plant", 0.4f, 5.45f));
             return L;
         }

@@ -14,22 +14,23 @@ namespace CleanerBot.EditorTools
         public const string CatalogPath = "Assets/CleanerBot/Furniture/CuteFurnitureCatalog.asset";
         const string PackRoot = "Assets/ithappy/Cute_Furniture_Free";
 
-        // kind -> (prefab name, alignment, tile)
-        static readonly (string kind, string prefab, FurnitureCatalog.Align align, bool tile)[] Map =
+        // kind -> (prefab name, alignment, tile, yaw so the model faces local +Z, depth shift away from the wall)
+        // yaw/depth for sofa, armchair, bookshelf, wardrobe, kitchen_counter, fridge come from the user's manual scene fixes (2026-09-30)
+        static readonly (string kind, string prefab, FurnitureCatalog.Align align, bool tile, float yaw, float depth)[] Map =
         {
-            ("sofa", "Couch_08", FurnitureCatalog.Align.Back, false),
-            ("armchair", "Armchair_02", FurnitureCatalog.Align.Back, false),
-            ("coffee_table", "Coffee_Table_03", FurnitureCatalog.Align.Center, false),
-            ("dining_table", "Kitchen_Table_09", FurnitureCatalog.Align.Center, false),
-            ("desk", "Work_Table_06", FurnitureCatalog.Align.Back, false),
-            ("chair", "Chair_17", FurnitureCatalog.Align.Center, false),
-            ("bookshelf", "Closet_01", FurnitureCatalog.Align.Back, false),
-            ("kitchen_counter", "Kitchen_D_01", FurnitureCatalog.Align.Back, true),
-            ("fridge", "Fridge_01", FurnitureCatalog.Align.Back, false),
-            ("bed", "Bed_07", FurnitureCatalog.Align.Front, false),
-            ("nightstand", "Nightstand_02", FurnitureCatalog.Align.Back, false),
-            ("wardrobe", "Closet_01", FurnitureCatalog.Align.Back, false),
-            ("plant", "Plants_15", FurnitureCatalog.Align.Center, false),
+            ("sofa", "Couch_08", FurnitureCatalog.Align.Back, false, 0f, 0.085f),
+            ("armchair", "Armchair_02", FurnitureCatalog.Align.Back, false, 0f, 0f),
+            ("coffee_table", "Coffee_Table_03", FurnitureCatalog.Align.Center, false, 180f, 0f),
+            ("dining_table", "Kitchen_Table_09", FurnitureCatalog.Align.Center, false, 180f, 0f),
+            ("desk", "Work_Table_06", FurnitureCatalog.Align.Back, false, 180f, 0f),
+            ("chair", "Chair_17", FurnitureCatalog.Align.Center, false, 180f, 0f),
+            ("bookshelf", "Closet_01", FurnitureCatalog.Align.Back, false, 0f, 0.045f),
+            ("kitchen_counter", "Kitchen_D_01", FurnitureCatalog.Align.Back, true, 0f, 0.01f),
+            ("fridge", "Fridge_01", FurnitureCatalog.Align.Back, false, 0f, 0.1f),
+            ("bed", "Bed_07", FurnitureCatalog.Align.Front, false, 180f, 0f),
+            ("nightstand", "Nightstand_02", FurnitureCatalog.Align.Back, false, 180f, 0f),
+            ("wardrobe", "Closet_01", FurnitureCatalog.Align.Back, false, 0f, 0f),
+            ("plant", "Plants_15", FurnitureCatalog.Align.Center, false, 180f, 0f),
             // tv_stand: no suitable model in the pack -> procedural
         };
 
@@ -68,7 +69,7 @@ namespace CleanerBot.EditorTools
             {
                 var path = prefabs.FirstOrDefault(p => Path.GetFileNameWithoutExtension(p) == m.prefab);
                 var go = path != null ? AssetDatabase.LoadAssetAtPath<GameObject>(path) : null;
-                cat.entries.Add(new FurnitureCatalog.Entry { kind = m.kind, prefab = go, yawOffset = 180f, align = m.align, tileAlongX = m.tile });
+                cat.entries.Add(new FurnitureCatalog.Entry { kind = m.kind, prefab = go, yawOffset = m.yaw, depthOffset = m.depth, align = m.align, tileAlongX = m.tile });
                 sb.AppendLine($"{m.kind,-16} -> {(go != null ? m.prefab : "MISSING " + m.prefab)}");
             }
             EditorUtility.SetDirty(cat);

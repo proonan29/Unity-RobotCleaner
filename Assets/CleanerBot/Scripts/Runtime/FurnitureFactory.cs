@@ -124,7 +124,7 @@ namespace CleanerBot
             float dz = e.align == FurnitureCatalog.Align.Back ? (-fp.y * 0.5f) - b.min.z
                      : e.align == FurnitureCatalog.Align.Front ? (fp.y * 0.5f) - b.max.z
                      : -b.center.z;
-            var delta = new Vector3(-b.center.x, -b.min.y, dz);
+            var delta = new Vector3(-b.center.x, -b.min.y, dz + e.depthOffset);
             foreach (var p in parts) p.transform.localPosition += delta;
 
             // colliders for the NavMesh (PhysicsColliders) and click raycasts
