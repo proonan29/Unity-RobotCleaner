@@ -19,6 +19,9 @@ namespace CleanerBot.UI
         static readonly Color AxisColor = new Color(1f, 1f, 1f, 0.25f);
         static readonly Color TextColor = new Color(0.6f, 0.62f, 0.66f);
 
+        /// <summary>Formats an x-axis tick (seconds). Default: minutes with an 'm' suffix.</summary>
+        public System.Func<float, string> timeLabel = t => $"{t / 60f:0}m";
+
         readonly List<Series> _series = new List<Series>();
         float _maxTime = 60f;
 
@@ -71,7 +74,7 @@ namespace CleanerBot.UI
                 float x = x0 + w * t / _maxTime;
                 p.strokeColor = t == 0 ? AxisColor : GridColor;
                 p.BeginPath(); p.MoveTo(new Vector2(x, y0)); p.LineTo(new Vector2(x, y1)); p.Stroke();
-                ctx.DrawText($"{t / 60f:0}m", new Vector2(Mathf.Min(x - 8f, x1 - 22f), y1 + 4f), 10f, TextColor);
+                ctx.DrawText(timeLabel(t), new Vector2(Mathf.Min(x - 8f, x1 - 22f), y1 + 4f), 10f, TextColor);
             }
 
             // series

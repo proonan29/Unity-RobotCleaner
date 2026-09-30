@@ -2,73 +2,84 @@
     <ui:Style src="CleanerBotUI.uss" />
     <ui:VisualElement name="root" class="root" picking-mode="Ignore">
         <ui:VisualElement name="sidePanel" class="side-panel">
-            <ui:Label text="CleanerBot" class="title" />
-            <ui:Label text="Robot vacuum simulator" class="subtitle" />
+            <ui:VisualElement class="row-between">
+                <ui:Label text="CleanerBot" class="title" />
+                <ui:Button name="settingsButton" text="Settings" class="btn btn-icon l10n" />
+            </ui:VisualElement>
+            <ui:Label text="Robot vacuum simulator" class="subtitle l10n" />
+
+            <ui:VisualElement name="settingsSection" class="section settings-section hidden">
+                <ui:Label text="LANGUAGE" class="section-title l10n" />
+                <ui:VisualElement class="button-row">
+                    <ui:Button name="langEnButton" text="English" class="btn btn-toggle" />
+                    <ui:Button name="langKoButton" text="한국어" class="btn btn-toggle btn-last" />
+                </ui:VisualElement>
+            </ui:VisualElement>
 
             <ui:VisualElement class="section">
-                <ui:Label text="HOUSE" class="section-title" />
+                <ui:Label text="HOUSE" class="section-title l10n" />
                 <ui:DropdownField name="houseDropdown" class="field" />
             </ui:VisualElement>
 
             <ui:VisualElement class="section">
-                <ui:Label text="PLANNER" class="section-title" />
+                <ui:Label text="PLANNER" class="section-title l10n" />
                 <ui:DropdownField name="plannerDropdown" class="field" />
             </ui:VisualElement>
 
             <ui:VisualElement class="section">
-                <ui:Label text="CONTROL" class="section-title" />
+                <ui:Label text="CONTROL" class="section-title l10n" />
                 <ui:VisualElement class="button-row">
-                    <ui:Button name="startButton" text="Start" class="btn btn-primary" />
+                    <ui:Button name="startButton" text="Start" class="btn btn-primary l10n" />
                     <ui:Button name="pauseButton" text="Pause" class="btn" />
-                    <ui:Button name="resetButton" text="Reset" class="btn btn-last" />
+                    <ui:Button name="resetButton" text="Reset" class="btn btn-last l10n" />
                 </ui:VisualElement>
             </ui:VisualElement>
 
             <ui:VisualElement class="section">
                 <ui:VisualElement class="row-between">
-                    <ui:Label text="SIMULATION SPEED" class="section-title" />
+                    <ui:Label text="SIMULATION SPEED" class="section-title l10n" />
                     <ui:Label name="speedValue" text="x5" class="speed-value" />
                 </ui:VisualElement>
                 <ui:SliderInt name="speedSlider" low-value="0" high-value="6" value="2" class="field" />
-                <ui:Toggle name="remainingToggle" label="Show remaining area" value="true" class="toggle" />
+                <ui:Toggle name="remainingToggle" label="Show remaining area" value="true" class="toggle l10n" />
             </ui:VisualElement>
 
             <ui:VisualElement class="section">
-                <ui:Label text="LIVE" class="section-title" />
+                <ui:Label text="LIVE" class="section-title l10n" />
                 <ui:Label name="statusLabel" text="Ready" class="status" />
                 <ui:ProgressBar name="coverageBar" low-value="0" high-value="100" title="0.0 %" class="coverage-bar" />
                 <ui:VisualElement class="stat-row">
-                    <ui:Label text="Elapsed (sim)" class="stat-key" />
+                    <ui:Label text="Elapsed (sim)" class="stat-key l10n" />
                     <ui:Label name="timeValue" text="0:00" class="stat-value" />
                 </ui:VisualElement>
                 <ui:VisualElement class="stat-row">
-                    <ui:Label text="Distance" class="stat-key" />
+                    <ui:Label text="Distance" class="stat-key l10n" />
                     <ui:Label name="distanceValue" text="0.0 m" class="stat-value" />
                 </ui:VisualElement>
                 <ui:VisualElement class="stat-row">
-                    <ui:Label text="Average passes" class="stat-key" />
+                    <ui:Label text="Average passes" class="stat-key l10n" />
                     <ui:Label name="passesValue" text="-" class="stat-value" />
                 </ui:VisualElement>
                 <ui:VisualElement class="stat-row">
-                    <ui:Label text="Cleanable area" class="stat-key" />
+                    <ui:Label text="Cleanable area" class="stat-key l10n" />
                     <ui:Label name="areaValue" text="-" class="stat-value" />
                 </ui:VisualElement>
             </ui:VisualElement>
 
             <ui:VisualElement class="section button-row">
-                <ui:Button name="summaryButton" text="Summary" class="btn" />
-                <ui:Button name="compareButton" text="Compare planners" class="btn btn-last" />
+                <ui:Button name="summaryButton" text="Summary" class="btn l10n" />
+                <ui:Button name="compareButton" text="Compare planners" class="btn btn-last l10n" />
             </ui:VisualElement>
         </ui:VisualElement>
 
         <ui:VisualElement name="summaryPanel" class="summary-panel hidden">
             <ui:VisualElement class="row-between">
                 <ui:Label name="summaryTitle" text="Cleaning summary" class="summary-title" />
-                <ui:Button name="closeSummaryButton" text="Close" class="btn btn-icon" />
+                <ui:Button name="closeSummaryButton" text="Close" class="btn btn-icon l10n" />
             </ui:VisualElement>
             <ui:Label name="summarySubtitle" text="" class="summary-subtitle" />
             <ui:VisualElement name="summaryStats" class="summary-stats" />
-            <ui:Label text="COVERAGE OVER TIME" class="section-title" />
+            <ui:Label text="COVERAGE OVER TIME" class="section-title l10n" />
             <ui:VisualElement name="chartContainer" class="chart-container" />
             <ui:VisualElement name="chartLegend" class="chart-legend" />
             <ui:VisualElement name="compareTable" class="compare-table" />
