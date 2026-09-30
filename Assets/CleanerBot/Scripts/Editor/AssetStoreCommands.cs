@@ -99,7 +99,7 @@ namespace CleanerBot.EditorTools
                 sb.AppendLine($"downloaded={list?.Length ?? 0}");
                 if (list != null)
                     foreach (var p in list)
-                        sb.AppendLine($"  {Get(p, "title")} | {Get(p, "packagePath")}");
+                        sb.AppendLine($"  {System.IO.Path.GetFileNameWithoutExtension(Get(p, "packagePath") as string ?? "")} | {Get(p, "packagePath")}");
             }
             catch (Exception e) { sb.AppendLine("downloaded=? " + (e.InnerException ?? e).Message); }
             return sb.ToString().TrimEnd();
@@ -189,9 +189,10 @@ namespace CleanerBot.EditorTools
                 var list = (Array)utilsT.GetMethod("GetLocalPackageList", Any).Invoke(utils, null);
                 foreach (var p in list)
                 {
-                    var t = Get(p, "title") as string ?? "";
+                    var path = Get(p, "packagePath") as string ?? "";
+                    var t = Get(p, "title") as string;
+                    if (string.IsNullOrEmpty(t)) t = System.IO.Path.GetFileNameWithoutExtension(path);
                     if (t.IndexOf(title, StringComparison.OrdinalIgnoreCase) < 0) continue;
-                    var path = Get(p, "packagePath") as string;
                     UnityEditor.AssetPackage.Package.Import(path, false);
                     return $"importing '{t}' from {path} (watch recompile_status / console)";
                 }
