@@ -21,29 +21,22 @@ namespace CleanerBot.EditorTools
             $"sim_time={Mmss(s.simTime)} t50={Mmss(s.timeTo50)} t90={Mmss(s.timeTo90)} t95={Mmss(s.timeTo95)} " +
             $"distance={F(s.distance)}m turns={F(s.rotationDeg / 360f)}rev goals={s.goals} failed={s.failedGoals} " +
             $"avg_passes={F(s.averagePasses)} overlap={F(s.overlapPercent)}% cleanable={F(s.cleanableM2)}m2 " +
-            $"wall_ms={F(wallMs)} plan_ms={F(s.planningMs)}";
+            $"wall_ms={F(wallMs)} plan_ms={F(s.planningMs)}" +
+            (s.batteryEnabled ? $" battery={F(s.batteryPercent)}% min_battery={F(s.minBattery)}% charges={s.charges} charging={Mmss(s.chargingTime)}" : " battery=off");
 
         /// <summary>Build a fresh grid + core for the house in the active scene (edit or play mode).</summary>
         static SimulationCore CreateHeadless(string planner, int seed, out string error)
         {
-            error = null;
             var house = UnityEngine.Object.FindAnyObjectByType<HouseInstance>();
             var cm = UnityEngine.Object.FindAnyObjectByType<CoverageManager>();
             var runner = UnityEngine.Object.FindAnyObjectByType<SimulationRunner>();
-            if (house == null || house.floor == null) { error = "error: no HouseInstance"; return null; }
-
             var spec = runner != null ? runner.spec : RobotSpec.Default;
+            var battery = runner != null ? runner.battery : BatterySpec.Default;
             float cell = cm != null ? cm.cellSize : 0.05f;
-            if (!NavMesh.SamplePosition(house.robotSpawn, out var hit, 1f, NavMesh.AllAreas))
-            { error = "error: robot spawn is not on the NavMesh (bake first: cb_rebake)"; return null; }
-
-            var b = house.floor.GetComponent<Renderer>().bounds;
-            var grid = new CoverageGrid(new Vector2(b.min.x, b.min.z), new Vector2(b.size.x, b.size.z), cell);
-            grid.BuildCleanableMask(hit.position, spec.brushRadius);
-            var robot = new RobotSim(spec, hit.position, 0f);
-            return new SimulationCore(grid, robot, PlannerFactory.Create(planner, seed));
+            var core = HeadlessSim.Create(house, planner, seed, spec, battery, cell, out error);
+            if (core == null) error = "error: " + error;
+            return core;
         }
-
         [CliCommand("cb_sim_run", "Run a complete cleaning simulation headless (fixed step, no player loop). Optionally shows the result on the floor and writes Screenshots/sim_<planner>.png/.json.")]
         public static string SimRun(
             [CliArg("planner", "Frontier | Random")] string planner = "Frontier",
@@ -207,7 +200,31 @@ namespace CleanerBot.EditorTools
             var r = PlayRunner(out var e); if (r == null) return e;
             if (r.Core == null) return "not started";
             var p = r.Core.Robot.Position;
-            return $"state={r.Core.State} speed={F(r.speedMultiplier)}x pos=({F(p.x)},{F(p.z)}) " + Summary(r.Core.Stats, 0f);
+            return $"state={r.Core.State} task={r.Core.Task} battery={F(r.Core.Battery.Percent)}% speed={F(r.speedMultiplier)}x pos=({F(p.x)},{F(p.z)}) " + Summary(r.Core.Stats, 0f);
+        }
+
+        [CliCommand("cb_battery", "Show or change the battery settings used by the next run (play or edit mode; edit mode saves the scene).")]
+        public static string BatteryConfig(
+            [CliArg("enabled", "Simulate the battery (true/false); omit to keep")] string enabled = "",
+            [CliArg("capacity", "Minutes of driving on a full battery; <=0 keeps")] float capacity = -1f,
+            [CliArg("charge", "Minutes to charge 0->100 %; <=0 keeps")] float charge = -1f,
+            [CliArg("resume", "Resume cleaning at this charge %; <=0 keeps")] float resume = -1f)
+        {
+            var r = UnityEngine.Object.FindAnyObjectByType<SimulationRunner>();
+            if (r == null) return "error: no SimulationRunner";
+            var b = r.battery;
+            if (bool.TryParse(enabled, out var en)) b.enabled = en;
+            if (capacity > 0f) b.capacityMinutes = capacity;
+            if (charge > 0f) b.chargeMinutes = charge;
+            if (resume > 0f) b.resumeAtPercent = Mathf.Clamp(resume, 10f, 100f);
+            r.battery = b;
+            if (!Application.isPlaying)
+            {
+                EditorUtility.SetDirty(r);
+                EditorSceneManager.MarkSceneDirty(r.gameObject.scene);
+                EditorSceneManager.SaveScene(r.gameObject.scene);
+            }
+            return $"battery enabled={b.enabled} capacity={F(b.capacityMinutes)}min charge={F(b.chargeMinutes)}min resume={F(b.resumeAtPercent)}% reserve={F(b.reservePercent)}% safety={F(b.safetyFactor)}";
         }
     }
 }

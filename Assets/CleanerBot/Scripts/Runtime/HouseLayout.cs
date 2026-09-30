@@ -53,7 +53,8 @@ namespace CleanerBot
         public float depth;          // Z extent (m)
         public float wallHeight = 1.2f;    // cut-away height so the interior stays visible
         public float wallThickness = 0.1f;
-        public Vector2 robotSpawn;
+        public Vector2 robotSpawn;          // robot centre when docked
+        public float robotSpawnYaw;         // robot heading when docked (deg); the dock sits behind the robot
         public List<WallSpec> walls = new List<WallSpec>();
         public List<FurnitureSpec> furniture = new List<FurnitureSpec>();
     }

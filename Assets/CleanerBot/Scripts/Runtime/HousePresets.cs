@@ -52,7 +52,8 @@ namespace CleanerBot
                 displayName = "Apartment A (4 rooms, 80 m²)",
                 width = 10f,
                 depth = 8f,
-                robotSpawn = new Vector2(4.6f, 0.5f),
+                robotSpawn = new Vector2(4.6f, 4.65f),     // dock on the living-room wall, visible from the camera
+                robotSpawnYaw = 180f,
             };
 
             OuterWalls(L);
@@ -103,7 +104,8 @@ namespace CleanerBot
                 displayName = "Studio B (open room + bath, 35 m²)",
                 width = 7f,
                 depth = 5f,
-                robotSpawn = new Vector2(4.6f, 2.4f),
+                robotSpawn = new Vector2(0.35f, 2.3f),
+                robotSpawnYaw = 90f,
             };
 
             OuterWalls(L);
@@ -137,7 +139,8 @@ namespace CleanerBot
                 displayName = "House C (5 rooms, 108 m²)",
                 width = 12f,
                 depth = 9f,
-                robotSpawn = new Vector2(5.0f, 0.5f),
+                robotSpawn = new Vector2(6.5f, 4.65f),
+                robotSpawnYaw = 180f,
             };
 
             OuterWalls(L);

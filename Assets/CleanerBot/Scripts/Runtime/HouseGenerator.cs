@@ -126,7 +126,33 @@ namespace CleanerBot
             house.floor = floor.transform;
             house.floorBounds = new Bounds(new Vector3(L.width * 0.5f, 0f, L.depth * 0.5f), new Vector3(L.width, 0f, L.depth));
             house.robotSpawn = new Vector3(L.robotSpawn.x, 0f, L.robotSpawn.y);
+            house.robotSpawnYaw = L.robotSpawnYaw;
+            house.dockLed = BuildDock(root.transform, house.robotSpawn, L.robotSpawnYaw, mats);
             return house;
+        }
+
+        /// <summary>Charging dock behind the robot's docked position. Visual only (no colliders -> NavMesh unchanged).</summary>
+        static Renderer BuildDock(Transform parent, Vector3 robotPos, float yaw, IMaterialProvider mats)
+        {
+            var rot = Quaternion.Euler(0f, yaw, 0f);
+            var dock = new GameObject("Dock").transform;
+            dock.SetParent(parent, false);
+            dock.localRotation = rot;
+            dock.localPosition = robotPos - rot * Vector3.forward * 0.22f;
+
+            var body = mats.Get("DockBody", new Color(0.12f, 0.12f, 0.14f));
+            NoCollider(Prims.Box(dock, "Plate", new Vector3(0f, 0.004f, 0.14f), new Vector3(0.34f, 0.008f, 0.32f), body));
+            NoCollider(Prims.Box(dock, "Tower", new Vector3(0f, 0.06f, 0f), new Vector3(0.30f, 0.12f, 0.08f), body));
+            NoCollider(Prims.Box(dock, "Contacts", new Vector3(0f, 0.012f, 0.1f), new Vector3(0.16f, 0.006f, 0.04f), mats.Get("Metal", new Color(0.55f, 0.57f, 0.60f))));
+            var led = Prims.Box(dock, "LED", new Vector3(0f, 0.095f, 0.042f), new Vector3(0.06f, 0.018f, 0.006f), mats.Get("DockLED", new Color(0.2f, 0.9f, 0.4f)));
+            NoCollider(led);
+            return led.GetComponent<Renderer>();
+        }
+
+        static void NoCollider(GameObject go)
+        {
+            var c = go.GetComponent<Collider>();
+            if (c != null) UnityEngine.Object.DestroyImmediate(c);   // immediate: the NavMesh may be rebuilt this frame
         }
 
         static void MarkNotWalkable(GameObject go)

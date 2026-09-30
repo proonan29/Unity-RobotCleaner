@@ -91,6 +91,7 @@ namespace CleanerBot.EditorTools
 
             // Robot
             var robot = RobotFactory.Create(house.robotSpawn, mats);
+            robot.transform.rotation = Quaternion.Euler(0f, house.robotSpawnYaw, 0f);
             EnsureCoverage(house, robot);
             SimulationCommands.EnsureRunner();
             UICommands.EnsureUI();

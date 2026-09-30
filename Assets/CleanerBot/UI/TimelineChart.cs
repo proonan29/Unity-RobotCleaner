@@ -12,6 +12,7 @@ namespace CleanerBot.UI
             public string name;
             public Color color;
             public List<Vector2> points;   // (seconds, percent)
+            public float width;            // line width (0 = default 2.5)
         }
 
         const float PadLeft = 40f, PadRight = 12f, PadTop = 10f, PadBottom = 22f;
@@ -82,7 +83,7 @@ namespace CleanerBot.UI
             {
                 if (s.points == null || s.points.Count < 2) continue;
                 p.strokeColor = s.color;
-                p.lineWidth = 2.5f;
+                p.lineWidth = s.width > 0f ? s.width : 2.5f;
                 p.lineJoin = LineJoin.Round;
                 p.BeginPath();
                 for (int i = 0; i < s.points.Count; i++)

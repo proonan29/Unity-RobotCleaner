@@ -6,7 +6,7 @@ namespace CleanerBot
     /// <summary>Builds an independent simulation (own grid) for a house — used for batch runs and planner comparison.</summary>
     public static class HeadlessSim
     {
-        public static SimulationCore Create(HouseInstance house, string planner, int seed, RobotSpec spec, float cellSize, out string error)
+        public static SimulationCore Create(HouseInstance house, string planner, int seed, RobotSpec spec, BatterySpec battery, float cellSize, out string error)
         {
             error = null;
             if (house == null || house.floor == null) { error = "no HouseInstance"; return null; }
@@ -16,8 +16,8 @@ namespace CleanerBot
             var b = house.floor.GetComponent<Renderer>().bounds;
             var grid = new CoverageGrid(new Vector2(b.min.x, b.min.z), new Vector2(b.size.x, b.size.z), cellSize);
             grid.BuildCleanableMask(hit.position, spec.brushRadius);
-            var robot = new RobotSim(spec, hit.position, 0f);
-            return new SimulationCore(grid, robot, PlannerFactory.Create(planner, seed));
+            var robot = new RobotSim(spec, hit.position, house.robotSpawnYaw);
+            return new SimulationCore(grid, robot, PlannerFactory.Create(planner, seed), battery);
         }
     }
 

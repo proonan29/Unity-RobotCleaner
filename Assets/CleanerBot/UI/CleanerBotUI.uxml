@@ -14,6 +14,19 @@
                     <ui:Button name="langEnButton" text="English" class="btn btn-toggle" />
                     <ui:Button name="langKoButton" text="한국어" class="btn btn-toggle btn-last" />
                 </ui:VisualElement>
+                <ui:Label text="BATTERY" class="section-title settings-subtitle l10n" />
+                <ui:Toggle name="batteryToggle" label="Simulate battery" value="true" class="toggle l10n" />
+                <ui:VisualElement class="row-between settings-row">
+                    <ui:Label text="Capacity" class="stat-key l10n" />
+                    <ui:Label name="capacityValue" text="15 min" class="stat-value" />
+                </ui:VisualElement>
+                <ui:SliderInt name="capacitySlider" low-value="5" high-value="120" value="15" class="field" />
+                <ui:VisualElement class="row-between settings-row">
+                    <ui:Label text="Full charge time" class="stat-key l10n" />
+                    <ui:Label name="chargeValue" text="30 min" class="stat-value" />
+                </ui:VisualElement>
+                <ui:SliderInt name="chargeSlider" low-value="5" high-value="240" value="30" class="field" />
+                <ui:Label text="Applies from the next Start." class="hint l10n" />
             </ui:VisualElement>
 
             <ui:VisualElement class="section">
@@ -48,6 +61,11 @@
                 <ui:Label text="LIVE" class="section-title l10n" />
                 <ui:Label name="statusLabel" text="Ready" class="status" />
                 <ui:ProgressBar name="coverageBar" low-value="0" high-value="100" title="0.0 %" class="coverage-bar" />
+                <ui:VisualElement class="stat-row">
+                    <ui:Label text="Battery" class="stat-key l10n" />
+                    <ui:Label name="batteryValue" text="100 %" class="stat-value" />
+                </ui:VisualElement>
+                <ui:ProgressBar name="batteryBar" low-value="0" high-value="100" value="100" class="battery-bar battery-high" />
                 <ui:VisualElement class="stat-row">
                     <ui:Label text="Elapsed (sim)" class="stat-key l10n" />
                     <ui:Label name="timeValue" text="0:00" class="stat-value" />

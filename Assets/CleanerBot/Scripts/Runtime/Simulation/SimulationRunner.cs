@@ -23,6 +23,7 @@ namespace CleanerBot
         public bool autoStart = true;
         public float maxSimMinutes = 180f;
         public RobotSpec spec = RobotSpec.Default;
+        public BatterySpec battery = BatterySpec.Default;
 
         public SimulationCore Core { get; private set; }
         public event Action<SimulationCore> Finished;
@@ -63,7 +64,7 @@ namespace CleanerBot
 
             var start = NavMesh.SamplePosition(_home, out var hit, 1f, NavMesh.AllAreas) ? hit.position : _home;
             var sim = new RobotSim(spec, start, _homeHeading);
-            Core = new SimulationCore(coverage.Grid, sim, PlannerFactory.Create(planner, seed))
+            Core = new SimulationCore(coverage.Grid, sim, PlannerFactory.Create(planner, seed), battery)
             {
                 MaxSimTime = maxSimMinutes * 60f,
             };
@@ -127,6 +128,31 @@ namespace CleanerBot
             for (int i = 0; i < n && Core.State == SimState.Running; i++) Core.Step(fixedStep);
             ApplyTransform();
             coverage.RefreshNow();
+        }
+
+        static readonly Color LedReady = new Color(0.15f, 0.85f, 0.35f);
+        static readonly Color LedAway = new Color(0.05f, 0.25f, 0.10f);
+        static readonly Color LedLow = new Color(1.0f, 0.45f, 0.1f);
+        MaterialPropertyBlock _ledBlock;
+
+        void LateUpdate() => UpdateDockLed();
+
+        /// <summary>Dock LED: pulsing orange->green while charging, green when the robot is home, dim while away.</summary>
+        void UpdateDockLed()
+        {
+            var house = coverage != null ? coverage.house : null;
+            if (house == null || house.dockLed == null) return;
+            Color c;
+            if (Core == null || Core.Task == RobotTask.Docked) c = LedReady;
+            else if (Core.Task == RobotTask.Charging)
+            {
+                float pulse = 0.55f + 0.45f * Mathf.PingPong(Time.unscaledTime * 1.5f, 1f);
+                c = Color.Lerp(LedLow, LedReady, Core.Battery.Percent / 100f) * pulse;
+            }
+            else c = LedAway;
+            _ledBlock ??= new MaterialPropertyBlock();
+            _ledBlock.SetColor("_BaseColor", c);
+            house.dockLed.SetPropertyBlock(_ledBlock);
         }
 
         void ApplyTransform()

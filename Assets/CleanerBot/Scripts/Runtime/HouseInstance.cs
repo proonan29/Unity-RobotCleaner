@@ -14,6 +14,8 @@ namespace CleanerBot
         public Transform floor;
         public Bounds floorBounds;
         public Vector3 robotSpawn;
+        public float robotSpawnYaw;
+        public Renderer dockLed;
 
         void Awake()
         {

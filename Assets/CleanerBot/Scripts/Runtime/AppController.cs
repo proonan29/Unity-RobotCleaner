@@ -61,11 +61,11 @@ namespace CleanerBot
             house.RebuildNavMesh();
 
             var spawn = NavMesh.SamplePosition(house.robotSpawn, out var hit, 1f, NavMesh.AllAreas) ? hit.position : house.robotSpawn;
-            robot.transform.SetPositionAndRotation(spawn, Quaternion.identity);
+            robot.transform.SetPositionAndRotation(spawn, Quaternion.Euler(0f, house.robotSpawnYaw, 0f));
 
             coverage.house = house;
             coverage.Initialize();
-            runner.SetHome(spawn, 0f);
+            runner.SetHome(spawn, house.robotSpawnYaw);
             runner.ResetToDock();
 
             if (cam != null) CameraFramer.Frame(cam, house.floorBounds, cameraPitch);
@@ -80,6 +80,12 @@ namespace CleanerBot
 
         public void ResetRun() => runner.ResetToDock();
 
+        public BatterySpec Battery
+        {
+            get => runner.battery;
+            set => runner.battery = value;
+        }
+
         public float Speed
         {
             get => runner.speedMultiplier;
@@ -92,7 +98,7 @@ namespace CleanerBot
             var results = new List<SimStats>();
             foreach (var name in PlannerFactory.Names)
             {
-                var core = HeadlessSim.Create(house, name, seed, runner.spec, coverage.cellSize, out var err);
+                var core = HeadlessSim.Create(house, name, seed, runner.spec, runner.battery, coverage.cellSize, out var err);
                 if (core == null) { Debug.LogWarning($"[CleanerBot] compare: {err}"); continue; }
                 core.RunToEnd(runner.fixedStep, maxMinutes * 60f);
                 results.Add(core.Stats);

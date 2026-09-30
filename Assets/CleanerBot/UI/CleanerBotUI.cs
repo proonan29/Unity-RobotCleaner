@@ -16,6 +16,7 @@ namespace CleanerBot.UI
         static readonly float[] Speeds = { 1, 2, 5, 10, 20, 50, 100 };
         public static readonly Color FrontierColor = new Color(0.25f, 0.82f, 0.78f);
         public static readonly Color RandomColor = new Color(0.96f, 0.63f, 0.27f);
+        public static readonly Color BatteryColor = new Color(0.94f, 0.78f, 0.31f, 0.85f);
         const string L10nClass = "l10n";
 
         VisualElement _root;
@@ -27,6 +28,10 @@ namespace CleanerBot.UI
         ProgressBar _bar;
         VisualElement _summary, _summaryStats, _legend, _compareTable, _settings;
         TimelineChart _chart;
+        Toggle _batteryToggle;
+        SliderInt _capacity, _charge;
+        Label _capacityValue, _chargeValue, _batteryValue;
+        ProgressBar _batteryBar;
         float _nextRefresh;
         List<string> _houseKeys;
 
@@ -68,6 +73,14 @@ namespace CleanerBot.UI
             _legend = root.Q("chartLegend");
             _compareTable = root.Q("compareTable");
 
+            _batteryToggle = root.Q<Toggle>("batteryToggle");
+            _capacity = root.Q<SliderInt>("capacitySlider");
+            _charge = root.Q<SliderInt>("chargeSlider");
+            _capacityValue = root.Q<Label>("capacityValue");
+            _chargeValue = root.Q<Label>("chargeValue");
+            _batteryValue = root.Q<Label>("batteryValue");
+            _batteryBar = root.Q<ProgressBar>("batteryBar");
+
             _chart = new TimelineChart { timeLabel = t => Loc.F("{0}m", (t / 60f).ToString("0", CultureInfo.InvariantCulture)) };
             root.Q("chartContainer").Add(_chart);
 
@@ -105,6 +118,14 @@ namespace CleanerBot.UI
 
             _remaining.SetValueWithoutNotify(app.coverage.showRemaining);
             _remaining.RegisterValueChangedCallback(e => app.coverage.SetShowRemaining(e.newValue));
+
+            var b = app.Battery;
+            _batteryToggle.SetValueWithoutNotify(b.enabled);
+            _capacity.SetValueWithoutNotify(Mathf.RoundToInt(b.capacityMinutes));
+            _charge.SetValueWithoutNotify(Mathf.RoundToInt(b.chargeMinutes));
+            _batteryToggle.RegisterValueChangedCallback(e => { var s = app.Battery; s.enabled = e.newValue; app.Battery = s; RefreshBatterySettings(); });
+            _capacity.RegisterValueChangedCallback(e => { var s = app.Battery; s.capacityMinutes = e.newValue; app.Battery = s; RefreshBatterySettings(); });
+            _charge.RegisterValueChangedCallback(e => { var s = app.Battery; s.chargeMinutes = e.newValue; app.Battery = s; RefreshBatterySettings(); });
 
             app.Finished += OnFinished;
             app.HouseChanged += OnHouseChanged;
@@ -165,9 +186,43 @@ namespace CleanerBot.UI
             _langEn.EnableInClassList("btn-selected", Loc.Current == Language.English);
             _langKo.EnableInClassList("btn-selected", Loc.Current == Language.Korean);
 
+            RefreshBatterySettings();
             RefreshLive(true);
             if (!_summary.ClassListContains("hidden") && _lastStats != null) ShowSummary(_lastStats, _lastComparison);
             _chart.MarkDirtyRepaint();
+        }
+
+        void RefreshBatterySettings()
+        {
+            var b = app.Battery;
+            _capacityValue.text = Loc.F("{0} min", Mathf.RoundToInt(b.capacityMinutes));
+            _chargeValue.text = Loc.F("{0} min", Mathf.RoundToInt(b.chargeMinutes));
+            _capacity.SetEnabled(b.enabled);
+            _charge.SetEnabled(b.enabled);
+        }
+
+        void SetBattery(bool enabled, float percent)
+        {
+            _batteryBar.value = enabled ? percent : 100f;
+            _batteryBar.title = "";
+            _batteryValue.text = enabled ? $"{F1(percent)} %" : Loc.T("Off");
+            _batteryBar.EnableInClassList("battery-high", !enabled || percent > 50f);
+            _batteryBar.EnableInClassList("battery-mid", enabled && percent > 20f && percent <= 50f);
+            _batteryBar.EnableInClassList("battery-low", enabled && percent <= 20f);
+        }
+
+        string TaskStatus(SimulationCore core)
+        {
+            var s = core.Stats;
+            switch (core.Task)
+            {
+                case RobotTask.ReturningToDock:
+                    return core.IsFinalReturn ? Loc.T("Returning to dock (done)")
+                                              : Loc.F("Returning to charge ({0} %)", F1(core.Battery.Percent));
+                case RobotTask.Charging: return Loc.F("Charging {0} %", F1(core.Battery.Percent));
+                case RobotTask.ReturningToWork: return Loc.T("Returning to resume point");
+                default: return Loc.F("Cleaning ({0})", Loc.T(s.planner));
+            }
         }
 
         // ---- live ----
@@ -214,13 +269,15 @@ namespace CleanerBot.UI
                 _area.text = app.coverage.Ready ? $"{F1(app.coverage.Grid.GetStats().cleanableM2)} m²" : "-";
                 _pause.SetEnabled(false);
                 _pause.text = Loc.T("Pause");
+                SetBattery(app.Battery.enabled, 100f);
                 return;
             }
+            SetBattery(core.Battery.Spec.enabled, core.Battery.Percent);
 
             var s = core.Stats;
             _status.text = core.State switch
             {
-                SimState.Running => Loc.F("Cleaning ({0})", Loc.T(s.planner)),
+                SimState.Running => TaskStatus(core),
                 SimState.Paused => Loc.T("Paused"),
                 SimState.Done => Loc.F("Finished — {0}", Loc.T(s.endReason)),
                 _ => Loc.F("Ready — {0}", HouseName),
@@ -265,9 +322,19 @@ namespace CleanerBot.UI
                 AddTile("Turning", Loc.F("{0} rev", (s.rotationDeg / 360f).ToString("0", CultureInfo.InvariantCulture)));
                 AddTile("Cleaned", $"{F1(s.coveredM2)} / {F1(s.cleanableM2)} m²");
                 AddTile("Goals", Loc.F("{0} ({1} failed)", s.goals, s.failedGoals));
+                if (s.batteryEnabled)
+                {
+                    AddTile("Charges", s.charges.ToString());
+                    AddTile("Charging time", Mmss(s.chargingTime));
+                    AddTile("Lowest battery", $"{F1(s.minBattery)} %");
+                }
 
-                _chart.SetSeries(new[] { MakeSeries(s) });
+                var series = new List<TimelineChart.Series> { MakeSeries(s) };
+                if (s.batteryEnabled)
+                    series.Add(new TimelineChart.Series { name = "Battery", color = BatteryColor, points = s.batteryTimeline, width = 1.5f });
+                _chart.SetSeries(series);
                 AddLegend(s.planner);
+                if (s.batteryEnabled) AddLegend("Battery", "legend-battery");
             }
             else
             {
@@ -295,11 +362,11 @@ namespace CleanerBot.UI
             _summaryStats.Add(tile);
         }
 
-        void AddLegend(string planner)
+        void AddLegend(string planner, string swatchClass = null)
         {
             var item = new VisualElement(); item.AddToClassList("legend-item");
             var sw = new VisualElement(); sw.AddToClassList("legend-swatch");
-            sw.AddToClassList(planner == "Random" ? "legend-random" : "legend-frontier");
+            sw.AddToClassList(swatchClass ?? (planner == "Random" ? "legend-random" : "legend-frontier"));
             var l = new Label(Loc.T(planner)); l.AddToClassList("legend-label");
             item.Add(sw); item.Add(l);
             _legend.Add(item);
@@ -314,7 +381,7 @@ namespace CleanerBot.UI
 
         void BuildCompareTable(List<SimStats> rows)
         {
-            string[] headers = { "PLANNER", "COVERAGE", "TIME", "TO 90 %", "DISTANCE", "PASSES" };
+            string[] headers = { "PLANNER", "COVERAGE", "TIME", "TO 90 %", "DISTANCE", "PASSES", "CHARGES" };
             for (int i = 0; i < headers.Length; i++) headers[i] = Loc.T(headers[i]);
             _compareTable.Add(Row(headers, true, -1));
 
@@ -330,7 +397,7 @@ namespace CleanerBot.UI
                 _compareTable.Add(Row(new[]
                 {
                     Loc.T(s.planner), $"{F1(s.coveragePercent)} %", Mmss(s.simTime), Mmss(s.timeTo90),
-                    $"{s.distance:0} m", F2(s.averagePasses),
+                    $"{s.distance:0} m", F2(s.averagePasses), s.batteryEnabled ? s.charges.ToString() : "-",
                 }, false, i == best ? 0 : -1));
             }
         }
