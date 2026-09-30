@@ -2,10 +2,10 @@
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
 $env:Path += ";C:\Users\proon\AppData\Local\Unity\bin"
 Set-Location D:\UnityAIProjs\DigitalTwin\CleanerBot
-$files = Get-ChildItem Assets\CleanerBot\Scripts -Recurse -Filter *.cs
+$files = Get-ChildItem Assets\CleanerBot -Recurse -Filter *.cs
 $usings = @(); $bodies = @()
 foreach ($f in $files) {
-    $lines = Get-Content $f.FullName
+    $lines = Get-Content -Encoding UTF8 $f.FullName
     $usings += $lines | Where-Object { $_ -match '^\s*using [\w\.]+;\s*$' } | ForEach-Object { $_.Trim() }
     $bodies += ($lines | Where-Object { $_ -notmatch '^\s*using [\w\.]+;\s*$' }) -join "`n"
 }

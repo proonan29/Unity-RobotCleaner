@@ -93,6 +93,7 @@ namespace CleanerBot.EditorTools
             var robot = RobotFactory.Create(house.robotSpawn, mats);
             EnsureCoverage(house, robot);
             SimulationCommands.EnsureRunner();
+            UICommands.EnsureUI();
 
             AssetMaterialProvider.EnsureFolder(Path.GetDirectoryName(scenePath).Replace('\\', '/'));
             EditorSceneManager.SaveScene(scene, scenePath);
@@ -289,13 +290,7 @@ namespace CleanerBot.EditorTools
 
         static void FrameHouse(Camera cam, HouseInstance house, float pitch = 60f)
         {
-            var b = house.floorBounds;
-            float halfFov = cam.fieldOfView * 0.5f * Mathf.Deg2Rad;
-            float span = Mathf.Max(b.size.z, b.size.x / Mathf.Max(cam.aspect, 1.3f));
-            float dist = (span * 0.5f + 0.8f) / Mathf.Tan(halfFov);
-            var rot = Quaternion.Euler(pitch, 0f, 0f);
-            cam.transform.rotation = rot;
-            cam.transform.position = b.center - rot * Vector3.forward * dist;
+            CameraFramer.Frame(cam, house.floorBounds, pitch);
         }
 
         static void AddSceneToBuild(string scenePath)

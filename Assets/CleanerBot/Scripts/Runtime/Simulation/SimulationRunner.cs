@@ -76,6 +76,23 @@ namespace CleanerBot
 
         public void SetPaused(bool paused) => Core?.Pause(paused);
 
+        /// <summary>Dock position/heading used by StartCleaning and ResetToDock (set when switching houses).</summary>
+        public void SetHome(Vector3 position, float heading)
+        {
+            _home = position;
+            _homeHeading = heading;
+        }
+
+        /// <summary>Stop the current run, put the robot back on the dock and clear the coverage map.</summary>
+        public void ResetToDock()
+        {
+            Core = null;
+            _accum = 0f;
+            if (robot != null) robot.transform.SetPositionAndRotation(_home, Quaternion.Euler(0f, _homeHeading, 0f));
+            if (_line != null) _line.positionCount = 0;
+            if (coverage != null && coverage.Ready) coverage.ResetCoverage();
+        }
+
         void Update()
         {
             if (Core == null) return;
