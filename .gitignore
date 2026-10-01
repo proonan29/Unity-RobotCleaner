@@ -14,9 +14,6 @@
 .vs/
 .vscode/
 .idea/
-*.csproj
-*.sln
-*.slnx
 *.suo
 *.user
 *.pidb
@@ -36,7 +33,4 @@ crashlytics-build.properties
 /AgentTools/_combined.cs
 
 # Third-party Asset Store content (re-import from the local Asset Store cache: cb_store_download / cb_store_import)
-/Assets/ithappy/
-/Assets/ithappy.meta
-/Assets/EvSeStudio/
-/Assets/EvSeStudio.meta
+
